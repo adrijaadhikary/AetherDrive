@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AetherDrive: a safety co-pilot for Suzuki Connect</title>
+  <meta name="description" content="Diagnose problems from a photo, find the nearest Suzuki service centre, and get alerts about accidents near you." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Hind:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="AetherDrive home">AetherDrive</a>
+    <nav aria-label="Main">
+      <a href="#diagnose">Diagnose</a>
+      <a href="#service">Service centres</a>
+      <a href="#alerts">Nearby alerts</a>
+      <a href="#drowsy">Drowsiness</a>
+      <a class="btn btn-sos-sm" href="#sos">SOS</a>
+    </nav>
+  </header>
+
+  <main id="top">
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>Help is already on its way before you ask for it.</h1>
+        <p class="lead">
+          AetherDrive is the safety co-pilot inside Suzuki Connect. Photograph a problem,
+          find the nearest service centre, and hear about accidents ahead of you.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#diagnose">Diagnose a problem</a>
+          <a class="btn btn-ghost" href="#service">Find a service centre</a>
+        </div>
+      </div>
+
+      <div class="phone" aria-label="Trip status preview">
+        <div class="phone-screen">
+          <p class="trip-title">Trip in progress</p>
+          <div class="status-row">
+            <span class="dot dot-ok" id="statusDot"></span>
+            <span id="statusText">Driver alert. All clear.</span>
+          </div>
+          <div class="meter" role="img" aria-label="Alertness level">
+            <div class="meter-fill" id="alertMeter"></div>
+          </div>
+          <ul class="mini-list">
+            <li>Crash detection <strong id="crashState">On</strong></li>
+            <li>Nearby alerts <strong id="alertCount">0 active</strong></li>
+            <li>Nearest service centre <strong id="nearestShort">Locating</strong></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick actions bar -->
+    <section class="quick-actions" aria-label="Quick actions">
+      <button class="btn btn-ghost" id="shareLocation" type="button">Share live location</button>
+      <a class="btn btn-ghost" href="tel:18004193333" id="callRoadside">Call Maruti roadside assistance</a>
+      <button class="btn btn-ghost" id="bookService" type="button">Book a service</button>
+      <p class="readout" id="actionReadout" aria-live="polite"></p>
+    </section>
+
+    <!-- AI photo diagnosis -->
+    <section class="section" id="diagnose">
+      <h2>Diagnose a problem from a photo</h2>
+      <p class="section-intro">Photograph a dashboard warning light, a flat tyre, a leak, or damage. AetherDrive's vision AI explains what it is, how urgent it is, and what to do next.</p>
+
+      <div class="diagnose-layout">
+
+        <div class="panel" id="uploadPanel">
+          <div class="dropzone" id="dropzone">
+            <p id="dropText">Drop a photo here, or choose one</p>
+            <div class="dropzone-buttons">
+              <label class="btn btn-primary" for="photoInput">Upload photo</label>
+              <label class="btn btn-ghost" for="photoCamera">Take photo</label>
+            </div>
+            <input type="file" id="photoInput" accept="image/*" hidden />
+            <input type="file" id="photoCamera" accept="image/*" capture="environment" hidden />
+          </div>
+
+          <figure class="preview" id="previewWrap" hidden>
+            <img id="photoPreview" alt="Photo selected for diagnosis" />
+            <button class="btn btn-ghost" id="removePhoto" type="button">Remove photo</button>
+          </figure>
+
+          <label for="carModel">Your car</label>
+          <select id="carModel">
+            <option value="">Not sure</option>
+            <option>Maruti Suzuki Swift</option>
+            <option>Maruti Suzuki Baleno</option>
+            <option>Maruti Suzuki Brezza</option>
+            <option>Maruti Suzuki Dzire</option>
+            <option>Maruti Suzuki Ertiga</option>
+            <option>Maruti Suzuki Grand Vitara</option>
+            <option>Maruti Suzuki Wagon R</option>
+            <option>Other Suzuki model</option>
+          </select>
+
+          <label for="describe">What happened? (optional)</label>
+          <textarea id="describe" rows="3" placeholder="For example: the light came on after I started the engine, and the car feels weak on hills."></textarea>
+
+          <button class="btn btn-primary btn-block" id="analyzeBtn" type="button" disabled>Analyze photo</button>
+          <p class="readout" id="analyzeStatus" aria-live="polite">Add a photo to begin.</p>
+        </div>
+
+        <div class="panel result-panel" id="resultPanel" aria-live="polite">
+          <div class="empty" id="resultEmpty">
+            <h3>Your diagnosis will appear here</h3>
+            <p>Add a clear, well-lit photo. If it's a warning light, get the whole dashboard in frame.</p>
+          </div>
+
+          <div id="resultBody" hidden>
+            <div class="result-head">
+              <h3 id="vProblem"></h3>
+              <span class="badge" id="vUrgency"></span>
+            </div>
+            <p id="vExplain"></p>
+            <h4>What to do next</h4>
+            <ol id="vSteps"></ol>
+            <div class="result-actions">
+              <a class="btn btn-sos-sm" href="tel:18004193333">Call roadside assistance</a>
+              <a class="btn btn-primary" href="#service" id="goService">Find a service centre</a>
+              <button class="btn btn-ghost" id="shareDiagnosis" type="button">Share diagnosis</button>
+            </div>
+
+            <form class="followup" id="followupForm" onsubmit="return false">
+              <label for="followupInput">Ask a follow-up</label>
+              <div class="followup-row">
+                <input type="text" id="followupInput" placeholder="Is it safe to drive 20 km?" />
+                <button class="btn btn-primary" id="followupBtn" type="button">Ask</button>
+              </div>
+              <div class="chat-log" id="chatLog"></div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Nearby Suzuki service centres -->
+    <section class="section section-alt" id="service">
+      <h2>Suzuki service centres near you</h2>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="useLocation" type="button">Use my location</button>
+        <label class="inline" for="centreType">Show
+          <select id="centreType">
+            <option value="all">All centres</option>
+            <option value="service">Service only</option>
+            <option value="arena">Arena showrooms</option>
+            <option value="nexa">Nexa showrooms</option>
+          </select>
+        </label>
+        <label class="inline" for="centreRadius">Within
+          <select id="centreRadius">
+            <option value="5000">5 km</option>
+            <option value="10000" selected>10 km</option>
+            <option value="25000">25 km</option>
+            <option value="50000">50 km</option>
+          </select>
+        </label>
+        <label class="inline check" for="openNow">
+          <input type="checkbox" id="openNow" /> Open now
+        </label>
+      </div>
+
+      <div class="map-list">
+        <div id="map" class="map" role="region" aria-label="Map of nearby Suzuki service centres">
+          <p class="map-fallback">The map loads once you allow location access and add your Google Maps key.</p>
+        </div>
+        <ul class="centre-list" id="centreList" aria-live="polite">
+          <li class="empty">Allow location access to see Suzuki service centres near you.</li>
+        </ul>
+      </div>
+
+      <template id="centreTemplate">
+        <li class="centre">
+          <div class="centre-main">
+            <h3 class="centre-name"></h3>
+            <p class="centre-meta"></p>
+          </div>
+          <div class="centre-actions">
+            <a class="btn btn-ghost centre-call" href="#">Call</a>
+            <a class="btn btn-ghost centre-directions" href="#" target="_blank" rel="noopener">Directions</a>
+            <button class="btn btn-primary centre-book" type="button">Book service</button>
+          </div>
+        </li>
+      </template>
+    </section>
+
+    <!-- Nearby accident alerts -->
+    <section class="section" id="alerts">
+      <h2>Accident alerts near you</h2>
+      <p class="section-intro">AetherDrive users share verified incidents in real time. You hear about crashes, breakdowns, and road hazards before you reach them.</p>
+
+      <div class="alerts-layout">
+
+        <div class="panel">
+          <div class="toolbar">
+            <label class="inline" for="alertRadius">Alert radius
+              <select id="alertRadius">
+                <option value="1">1 km</option>
+                <option value="3">3 km</option>
+                <option value="5" selected>5 km</option>
+                <option value="10">10 km</option>
+              </select>
+            </label>
+            <label class="inline check" for="alertSound">
+              <input type="checkbox" id="alertSound" checked /> Play a sound for new alerts
+            </label>
+          </div>
+
+          <ul class="alert-list" id="alertList" aria-live="polite">
+            <li class="empty">No incidents reported nearby. You'll see new alerts here as they come in.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <h3>Report an incident</h3>
+          <form id="reportForm" onsubmit="return false">
+            <label for="incidentType">What's happening?</label>
+            <select id="incidentType">
+              <option value="accident">Accident</option>
+              <option value="breakdown">Broken-down vehicle</option>
+              <option value="hazard">Road hazard</option>
+              <option value="flood">Flooding or poor visibility</option>
+            </select>
+
+            <label for="incidentNote">Details (optional)</label>
+            <textarea id="incidentNote" rows="3" placeholder="For example: two cars on the left lane, one lane blocked."></textarea>
+
+            <button class="btn btn-sos-sm btn-block" id="reportBtn" type="button">Alert nearby drivers</button>
+            <p class="readout" id="reportStatus" aria-live="polite"></p>
+          </form>
+        </div>
+
+      </div>
+
+      <template id="alertTemplate">
+        <li class="alert-item">
+          <span class="badge alert-type"></span>
+          <div class="alert-body">
+            <p class="alert-title"></p>
+            <p class="alert-meta"></p>
+          </div>
+          <a class="btn btn-ghost alert-route" href="#" target="_blank" rel="noopener">Avoid route</a>
+        </li>
+      </template>
+    </section>
+
+    <!-- Drowsiness + crash (MediaPipe comes next) -->
+    <section class="section section-alt" id="drowsy">
+      <h2>Stay alert, and get checked after an impact</h2>
+
+      <div class="demo-grid">
+        <div class="demo" id="demo-drowsy">
+          <h3>Drowsiness monitor</h3>
+          <p class="hint">Your video stays on this device and is never uploaded.</p>
+          <div class="video-wrap">
+            <video id="cam" autoplay playsinline muted></video>
+            <canvas id="overlay"></canvas>
+          </div>
+          <div class="demo-controls">
+            <button class="btn btn-primary" id="startCam" type="button">Start camera</button>
+            <button class="btn btn-ghost" id="stopCam" type="button" disabled>Stop</button>
+          </div>
+          <p class="readout" id="drowsyReadout" aria-live="polite">Camera is off.</p>
+          <div class="suggestion" id="restSuggestion" hidden>
+            <p><strong>You look tired.</strong> The nearest rest stop is <span id="restName"></span>.</p>
+            <a class="btn btn-primary" id="restRoute" href="#" target="_blank" rel="noopener">Get directions</a>
+          </div>
+        </div>
+
+        <div class="demo" id="demo-crash">
+          <h3>Crash safety check</h3>
+          <p class="hint">Simulates what happens after a sudden impact.</p>
+          <button class="btn btn-primary" id="simulateCrash" type="button">Simulate impact</button>
+          <p class="readout" id="crashReadout" aria-live="polite">No impact detected.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOS -->
+    <section class="section sos-section" id="sos">
+      <h2>One press. Help comes running.</h2>
+      <button class="sos-btn" id="sosBtn" type="button" aria-describedby="sosNote">SOS</button>
+      <p id="sosNote" class="hint">Hold for 2 seconds to send your location to your emergency contacts.</p>
+      <p class="readout" id="sosReadout" aria-live="assertive"></p>
+    </section>
+
+  </main>
+
+  <dialog id="safetyDialog" aria-labelledby="safetyTitle">
+    <h2 id="safetyTitle">Are you okay?</h2>
+    <p>We detected a sudden impact. Alerting nearby drivers in <strong id="countdown">15</strong> seconds.</p>
+    <div class="dialog-actions">
+      <button class="btn btn-primary" id="imOkay" type="button">I'm okay</button>
+      <button class="btn btn-sos-sm" id="needHelp" type="button">I need help</button>
+    </div>
+  </dialog>
+
+  <footer class="site-footer">
+    <p>AetherDrive is a hackathon prototype for the Suzuki Connect app. In an emergency, call 112.</p>
+  </footer>
+
+  <!-- 1. Replace YOUR_KEY with your Google Maps key. initMap is defined in main.js -->
+  <script>
+    window.AETHER_CONFIG = { mapsReady: false };
+  </script>
+  <script src="js/main.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY&libraries=places&callback=initMap"></script>
+</body>
+</html>

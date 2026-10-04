@@ -1,28 +1,21 @@
-import express from 'express';
-import Anthropic from '@anthropic-ai/sdk';
-import filepath from 'node:url';
-import path from 'node:path';
+import "dotenv/config";
+import express from "express";
+import Anthropic from "@anthropic-ai/sdk";
+import path from "node:path";
+import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
 
-const __filename = filepath.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
-
-// This line lets Express serve style.css, main.js, index.html, etc.
-app.use(express.static(__dirname));
-app.use(express.json());
+const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-3-5-20241022";
 
 if (!process.env.ANTHROPIC_API_KEY) console.warn("Warning: ANTHROPIC_API_KEY is missing from .env. AI routes will fail.");
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "missing" });
 
+const app = express();
+app.use(express.json({ limit: "50mb" }));
 
-app.use(express.json({ limit: "10mb" }));
-
-/* Serve only the public folders. Never serve "." because that would expose .env */
-app.use("/css", express.static(path.join(__dirname, "css")));
-app.use("/js", express.static(path.join(__dirname, "js")));
-app.use("/models", express.static(path.join(__dirname, "models")));
+app.use(express.static(__dirname));
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
 /* ---------- Helpers ---------- */

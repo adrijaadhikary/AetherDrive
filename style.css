@@ -342,3 +342,11 @@ dialog[open] { animation: rise .35s cubic-bezier(.2,.7,.2,1); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+/* ---------- Safety check-in timer ---------- */
+.checkin-panel { max-width: 560px; }
+.checkin-display { margin: .2rem 0 1rem; text-align: center; font: 700 clamp(3rem, 9vw, 4.6rem)/1 var(--mono); letter-spacing: -.02em; color: var(--ink); text-shadow: 3px 3px 0 rgba(255,63,164,.3), -3px -3px 0 rgba(18,214,245,.3); }
+.checkin-display.is-running { animation: tickglow 1s ease-in-out infinite alternate; }
+.checkin-display.is-low { color: var(--alert); }
+.dialog-actions { flex-wrap: wrap; }
+#ciCount { font: 700 1.4rem var(--mono); color: var(--alert); text-shadow: 0 0 12px rgba(255,46,99,.6); }
+@keyframes tickglow { to { text-shadow: 3px 3px 0 rgba(255,63,164,.5), -3px -3px 0 rgba(18,214,245,.5), 0 0 24px rgba(138,63,252,.4); } }

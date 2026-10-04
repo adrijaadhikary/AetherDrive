@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- MediaPipe Face Mesh Dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AetherDrive: a safety co-pilot for Suzuki Connect</title>
@@ -283,7 +287,25 @@
         </div>
       </div>
     </section>
-
+      <!-- Safety check-in timer -->
+    <section class="section" id="checkin">
+      <h2>Safety check-in timer</h2>
+      <p class="section-intro">Set a timer for your drive. When it ends, AetherDrive asks if you're okay. If you don't answer, nearby drivers and emergency contacts are alerted.</p>
+      <div class="panel checkin-panel">
+        <div class="checkin-display" id="ciDisplay">--:--</div>
+        <div class="meter" role="img" aria-label="Time until the next check-in"><div class="meter-fill" id="ciBar" style="width:0%"></div></div>
+        <label for="ciInterval">Ask me every</label>
+        <select id="ciInterval">
+          <option value="0.25">15 seconds (demo)</option>
+          <option value="15">15 minutes</option>
+          <option value="30" selected>30 minutes</option>
+          <option value="60">1 hour</option>
+          <option value="120">2 hours</option>
+        </select>
+        <button class="btn btn-primary btn-block" id="ciStart" type="button">Start check-ins</button>
+        <p class="readout" id="ciStatus" aria-live="polite">Check-ins are off.</p>
+      </div>
+    </section>
     <!-- SOS -->
     <section class="section sos-section" id="sos">
       <h2>One press. Help comes running.</h2>
@@ -302,9 +324,17 @@
       <button class="btn btn-sos-sm" id="needHelp" type="button">I need help</button>
     </div>
   </dialog>
-
+       <dialog id="ciDialog" aria-labelledby="ciTitle">
+    <h2 id="ciTitle">Safety check-in</h2>
+    <p>Are you okay? We'll alert nearby drivers in <strong id="ciCount">20</strong> seconds.</p>
+    <div class="dialog-actions">
+      <button class="btn btn-primary" id="ciOk" type="button">I'm okay</button>
+      <button class="btn btn-ghost" id="ciSnooze" type="button">Snooze 5 min</button>
+      <button class="btn btn-sos-sm" id="ciHelp" type="button">I need help</button>
+    </div>
+  </dialog>
   <footer class="site-footer">
-    <p>AetherDrive is a hackathon prototype for the Suzuki Connect app. In an emergency, call 112.</p>
+    <p>AetherDrive is currently a prototype.</p>
   </footer>
 
   <!-- 1. Replace YOUR_KEY with your Google Maps key. initMap is defined in main.js -->
@@ -312,6 +342,7 @@
     window.AETHER_CONFIG = { mapsReady: false };
   </script>
   <script src="js/main.js"></script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY&libraries=places&callback=initMap"></script>
+  <script src="js/checkin.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMLqlTXl-wg5Br2BqXaPFbbMazlgrW_Es&libraries=places&callback=initMap"></script>
 </body>
 </html>

@@ -1,4 +1,3 @@
-console.log("AetherDrive JS is working");
 "use strict";
 /* AetherDrive front-end logic.
    Works on its own in demo mode. When server.js is running, photo diagnosis,
